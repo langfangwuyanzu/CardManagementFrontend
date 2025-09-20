@@ -1,0 +1,195 @@
+/* 防止全局样式干扰 */
+.yl-login,
+.yl-login * {
+  box-sizing: border-box;
+}
+
+/* 页面布局：大屏左右两列，小屏只显示右侧卡片 */
+.yl-login {
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+@media (min-width: 992px) {
+  .yl-login {
+    flex-direction: row;
+  }
+}
+
+/* 左侧图片 */
+.yl-login__left {
+  position: relative;
+  width: 70%;
+  display: none; /* 移动端隐藏 */
+  background-size: cover;
+  background-position: center;
+  min-height: 40vh;
+  background-color: white;
+}
+
+
+@media (min-width: 992px) {
+  .yl-login__left {
+    background-color: white;
+    display: block;
+    width: 65vw; /* 与参考图接近的占比 */
+    /* max-width: 1360px; */
+    min-height: 100vh;
+   
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: white; /* 橙色叠加 */
+    background-blend-mode: multiply;
+  }
+}
+
+
+
+
+
+
+/* 半透明橙色层 */
+.yl-login__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(245, 158, 11, 0.65);
+  pointer-events: none;
+}
+
+/* 橙色遮罩 */
+.yl-login__overlay {
+  position: absolute;
+  inset: 0;
+  /* background: rgba(245, 158, 11, 0.65); */
+  pointer-events: none;
+}
+
+/* 右侧容器，负责让卡片居中 */
+.yl-login__right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  /* background: #fff; */
+}
+
+/* 白色卡片 */
+.yl-login__card {
+  width: 60%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  padding: 48px 56px;
+}
+
+/* 标题 */
+.yl-login__title {
+  margin: 0 0 28px 0;
+  font-size: 40px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+/* 表单 */
+.yl-login__form {
+  width: 100%;
+}
+
+/* 一行：左输入 + 右按钮 */
+.yl-login__row {
+  display: grid;
+  grid-template-columns: 1fr 150px;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+@media (max-width: 480px) {
+  .yl-login__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.yl-login__field {
+  width: 100%;
+}
+
+.yl-login__label {
+  display: block;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.yl-login__input {
+  width: 100%;
+  height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #cfd6e4;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.yl-login__input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* 发送验证码按钮 */
+.yl-login__send {
+  height: 40px;
+  border: 1px solid #cfd6e4;
+  border-radius: 8px;
+  background: #f5f7fb;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border 0.2s;
+}
+.yl-login__send:hover {
+  background: #eef2ff;
+  border-color: #a7b4d9;
+}
+.yl-login__send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 帮助链接 */
+.yl-login__help {
+  display: inline-block;
+  margin: 6px 0 28px;
+  font-size: 14px;
+  color: #06b6d4;
+  text-decoration: none;
+}
+.yl-login__help:hover {
+  text-decoration: underline;
+}
+
+/* 渐变 Login 按钮 */
+.yl-login__btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+  transition: transform 0.05s ease, filter 0.2s ease;
+}
+.yl-login__btn:hover {
+  filter: brightness(0.98);
+}
+.yl-login__btn:active {
+  transform: scale(0.99);
+}

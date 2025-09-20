@@ -1,0 +1,119 @@
+:root{
+  --hp-brand:#f4a51c;
+  --hp-text:#1f2937;
+  --hp-muted:#6b7280;
+  --hp-white:#ffffff;
+}
+
+/* 整体容器：用你的背景图平铺 */
+.hp-container{
+  min-height: 100vh;
+  background-repeat: repeat;      /* 点阵类背景建议 repeat */
+  background-size: auto;          /* 如果想拉伸可改为 cover */
+  padding: 24px 28px 48px;
+  box-sizing: border-box;
+  color: var(--hp-text);
+}
+
+/* 顶部区域：左标题 + 右LOGO */
+.hp-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  border-bottom:1px solid #e5e7eb;
+  padding-bottom:12px;
+  margin-bottom:24px;
+}
+
+.hp-left-title{
+  font-weight:800;
+  line-height:1;
+  color: var(--hp-brand);
+  font-size: 44px;
+  letter-spacing: 0.5px;
+}
+.hp-left-title > div + div{ margin-top: 4px; }
+
+.hp-logo{
+  height: 36px;        /* 按你图示大小微调 */
+  object-fit: contain;
+}
+
+/* 中心主视觉 */
+.hp-hero{
+  text-align: left;
+  max-width: 920px;
+  margin: 32px auto 0;
+}
+
+.hp-drop-wrap{
+  display:flex;
+  justify-content:flex-start;
+}
+
+.hp-hero-img{
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 6px solid #fff;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* 标题与下划线 */
+#hp-title{
+  margin-top: 16px;
+  font-size: 36px;
+  font-weight: 800;
+}
+.hp-underline{
+  width: 120px;
+  height: 4px;
+  background: linear-gradient(90deg, #f4a51c, #fbbf24);
+  border-radius: 999px;
+  margin: 10px 0 16px;
+}
+
+.hp-subtitle{
+  color: var(--hp-muted);
+  font-size: 16px;
+  max-width: 720px;
+}
+
+/* 按钮组 */
+.hp-btns{
+  margin-top: 20px;
+  display:flex;
+  gap: 12px;
+}
+.hp-btn{
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.hp-btn-primary{
+  background: linear-gradient(90deg, #f4a51c, #f59e0b);
+  color: var(--hp-white);
+}
+.hp-btn-outline{
+  background: transparent;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.hp-footer{
+  text-align:center;
+  color: #9ca3af;
+  font-size: 12px;
+  margin-top: 48px;
+}
+
+/* 响应式 */
+@media (max-width: 768px){
+  .hp-left-title{ font-size: 32px; }
+  .hp-hero-img{ width: 120px; height: 120px; }
+  #hp-title{ font-size: 28px; }
+}

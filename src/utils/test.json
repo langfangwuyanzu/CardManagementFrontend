@@ -1,0 +1,45 @@
+{
+  "info": {
+    "name": "Auth API",
+    "_postman_id": "3bcd2a7f-5678-1234-9abc-def4567890ab",
+    "description": "Collection for testing auth-related APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Current User (me)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/me",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxODIzMjQ2NTQ3MkAxNjMuY29tIiwiaWF0IjoxNzU3MTY2MTM0LCJleHAiOjE3NTcxNjY3MzQsInNjb3BlIjoiZW1haWxfdmVyaWZpZWQifQ.lVBatF6qO-0QjdFT-B2c6g-6yL9l8zS8hsY7rBJxOnQthiQ20iovOfo0F1rljMkh"
+    }
+  ]
+}

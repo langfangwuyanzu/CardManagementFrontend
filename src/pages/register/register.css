@@ -1,0 +1,114 @@
+:root{
+  --cr-brand:#f4a51c;
+  --cr-brand2:#ff9f1c;
+  --cr-text:#444;
+  --cr-muted:#777;
+  --cr-border:#e6e6e6;
+}
+
+.cr-wrap{ max-width:1200px; margin:0 auto; padding:24px 16px 48px; color:var(--cr-text); font-size:14px; }
+.cr-header{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--cr-border); padding-bottom:12px; margin-bottom:24px; }
+.cr-header h1{ font-size:28px; font-weight:700; color:var(--cr-brand); }
+.cr-logo{ height:28px; }
+.cr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: #fff url("../../assets/homePage/yothu-logo.png") no-repeat right center;
+  background-size: 160px auto; /* 调整 logo 尺寸 */
+}
+
+.cr-grid{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.cr-panel{ background:#fff; padding:0 8px 24px; border-right:1px solid var(--cr-border); }
+.cr-panel:last-child{ border-right:none; }
+.cr-panel h2{ font-size:18px; font-weight:600; margin:12px 0 8px; }
+
+/* 表单行（使用唯一前缀，避免与任何 .row/.panel 冲突） */
+.cr-row{ display:flex; align-items:center; gap:12px; margin:10px 0; }
+.cr-row label{
+  width: 200px;          /* 180~220 都可以，看你布局 */
+  color: var(--cr-muted);
+  white-space: nowrap;   /* ← 不换行 */
+}
+.cr-row label span{ color:#e67a00; margin-left:2px; }
+.cr-row input, .cr-row select{ flex:1; height:34px; border:1px solid var(--cr-border); border-radius:4px; padding:0 10px; outline:none; }
+.cr-row input:focus, .cr-row select:focus{ border-color:#c9c9c9; }
+
+.cr-three .cr-cell{ flex:1; display:flex; flex-direction:column; }
+.cr-three .cr-two-span{ flex:2; }
+.cr-two{ display:flex; }
+.cr-two .cr-cell{ flex:1; display:flex; flex-direction:column; }
+.cr-link-cell{ align-items:flex-end; justify-content:flex-end; }
+.cr-btn-cell{ align-items:flex-end; }
+
+.cr-btn{ height:34px; padding:0 14px; border:1px solid var(--cr-border); border-radius:4px; background:#f5f5f5; cursor:pointer; }
+.cr-ghost{ background:transparent; }
+.cr-small{ height:32px; padding:0 10px; }
+.cr-ok{ margin-left:8px; color:#2e7d32; font-weight:700; }
+
+.cr-upload{ flex:1; border:1px solid var(--cr-border); border-radius:6px; height:120px; display:flex; align-items:center; justify-content:center; position:relative; background:#fafafa; }
+.cr-upload input[type=file]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+.cr-upload-hint{ color:#b5b5b5; font-size:28px; }
+
+.cr-submit-row{ margin-top:24px; display:flex; justify-content:center; }
+.cr-submit{ width:400px; height:44px; border:none; color:#fff; font-weight:700; border-radius:6px; background:linear-gradient(90deg, var(--cr-brand), var(--cr-brand2)); cursor:pointer; }
+
+.cr-tip{ margin-top:16px; color:#666; }
+
+@media (max-width: 992px){
+  .cr-grid{ grid-template-columns:1fr; }
+  .cr-panel{ border-right:none; border-bottom:1px solid var(--cr-border); padding-bottom:16px; }
+}
+
+
+/* 统一输入框/选择框高度 */
+.cr-row input,
+.cr-row select,
+.cr-upload,
+.cr-btn,
+.cr-submit {
+  height: 38px;             /* 全部统一高度 */
+  line-height: 38px;
+  border-radius: 4px;
+}
+
+/* 文字在中间 */
+.cr-row input,
+.cr-row select {
+  padding: 0 10px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* 上传区域保持大方块，但里面的 file input 隐藏 */
+.cr-upload {
+  height: 120px;            /* 照旧，保持大方块上传区域 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--cr-border);
+  background: #fafafa;
+  position: relative;
+}
+.cr-upload input[type=file] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* 验证按钮/Check按钮高度和输入框一致 */
+.cr-btn,
+.cr-btn.cr-small {
+  background: #f5f5f5;
+  border: 1px solid var(--cr-border);
+  padding: 0 14px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.cr-btn.cr-small {
+  height: 38px; /* 即便 small，也和输入框对齐 */
+  padding: 0 12px;
+}
+
