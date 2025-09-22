@@ -108,7 +108,7 @@ export default function ProfileTab({ profile, onUpdated }) {
       console.log(token);
    
       // ✅ 用封装的 api.put 提交
-      const updated = await api.put("/api/users/me", body, { token });
+      const updated = await api.put("/users/me", body, { token });
 
       // 若后端不返回体，fallback 用提交体
       const merged = updated && typeof updated === "object" ? updated : { ...profile, ...body };

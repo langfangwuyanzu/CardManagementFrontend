@@ -4,95 +4,66 @@
   box-sizing: border-box;
 }
 
-/* 页面布局：大屏左右两列，小屏只显示右侧卡片 */
+/* 页面布局：移动端优先 */
 .yl-login {
   min-height: 100vh;
   background: #fff;
   display: flex;
   flex-direction: column;
-  font-family: "Segoe UI", Arial, sans-serif;
-}
-@media (min-width: 992px) {
-  .yl-login {
-    flex-direction: row;
-  }
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* 左侧图片 */
+/* 左侧图片 - 移动端隐藏 */
 .yl-login__left {
-  position: relative;
-  width: 70%;
-  display: none; /* 移动端隐藏 */
-  background-size: cover;
-  background-position: center;
-  min-height: 40vh;
-  background-color: white;
+  display: none;
 }
 
-
-@media (min-width: 992px) {
-  .yl-login__left {
-    background-color: white;
-    display: block;
-    width: 65vw; /* 与参考图接近的占比 */
-    /* max-width: 1360px; */
-    min-height: 100vh;
-   
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: white; /* 橙色叠加 */
-    background-blend-mode: multiply;
-  }
-}
-
-
-
-
-
-
-/* 半透明橙色层 */
-.yl-login__overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(245, 158, 11, 0.65);
-  pointer-events: none;
-}
-
-/* 橙色遮罩 */
-.yl-login__overlay {
-  position: absolute;
-  inset: 0;
-  /* background: rgba(245, 158, 11, 0.65); */
-  pointer-events: none;
-}
-
-/* 右侧容器，负责让卡片居中 */
+/* 右侧容器 */
 .yl-login__right {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
-  /* background: #fff; */
+  padding: 20px;
+  width: 100%;
 }
 
 /* 白色卡片 */
 .yl-login__card {
-  width: 60%;
-  max-width: 420px;
+  width: 100%;
+  max-width: 400px;
   background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-  padding: 48px 56px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 30px 24px;
 }
 
 /* 标题 */
 .yl-login__title {
-  margin: 0 0 28px 0;
-  font-size: 40px;
+  margin: 0 0 24px 0;
+  font-size: 28px;
   line-height: 1.2;
   font-weight: 700;
   color: #f59e0b;
+  text-align: center;
+}
+
+/* 消息提示 */
+.yl-login__message {
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.yl-login__message--success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.yl-login__message--error {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 /* 表单 */
@@ -100,22 +71,9 @@
   width: 100%;
 }
 
-/* 一行：左输入 + 右按钮 */
-.yl-login__row {
-  display: grid;
-  grid-template-columns: 1fr 150px;
-  gap: 12px;
-  align-items: end;
-  margin-bottom: 16px;
-}
-@media (max-width: 480px) {
-  .yl-login__row {
-    grid-template-columns: 1fr;
-  }
-}
-
+/* 表单字段 */
 .yl-login__field {
-  width: 100%;
+  margin-bottom: 16px;
 }
 
 .yl-login__label {
@@ -123,54 +81,63 @@
   font-size: 14px;
   color: #374151;
   margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .yl-login__input {
   width: 100%;
-  height: 40px;
-  padding: 8px 10px;
-  border: 1px solid #cfd6e4;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 16px;
   outline: none;
   background: #fff;
   transition: border 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none; /* 移除iOS默认样式 */
 }
+
 .yl-login__input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+/* 一行：左输入 + 右按钮 */
+.yl-login__row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.yl-login__row .yl-login__field {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 /* 发送验证码按钮 */
 .yl-login__send {
-  height: 40px;
-  border: 1px solid #cfd6e4;
+  height: 48px;
+  min-width: 120px;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   background: #f5f7fb;
   color: #374151;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.2s, border 0.2s;
+  align-self: flex-end;
+  white-space: nowrap;
 }
+
 .yl-login__send:hover {
   background: #eef2ff;
   border-color: #a7b4d9;
 }
+
 .yl-login__send:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-/* 帮助链接 */
-.yl-login__help {
-  display: inline-block;
-  margin: 6px 0 28px;
-  font-size: 14px;
-  color: #06b6d4;
-  text-decoration: none;
-}
-.yl-login__help:hover {
-  text-decoration: underline;
 }
 
 /* 渐变 Login 按钮 */
@@ -179,17 +146,90 @@
   height: 48px;
   border: none;
   border-radius: 10px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #fff;
   cursor: pointer;
   background: linear-gradient(90deg, #f59e0b, #fbbf24);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
   transition: transform 0.05s ease, filter 0.2s ease;
+  margin-top: 8px;
 }
+
 .yl-login__btn:hover {
   filter: brightness(0.98);
 }
+
 .yl-login__btn:active {
   transform: scale(0.99);
+}
+
+/* 平板设备适配 */
+@media (min-width: 768px) {
+  .yl-login__card {
+    padding: 40px;
+  }
+  
+  .yl-login__title {
+    font-size: 32px;
+  }
+}
+
+/* 桌面设备适配 - 显示左侧图片 */
+@media (min-width: 992px) {
+  .yl-login {
+    flex-direction: row;
+  }
+  
+  .yl-login__left {
+    display: block;
+    width: 50%;
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+  }
+  
+  .yl-login__right {
+    width: 50%;
+    padding: 40px;
+  }
+  
+  .yl-login__card {
+    max-width: 420px;
+    padding: 48px 40px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  }
+  
+  .yl-login__title {
+    font-size: 40px;
+    text-align: left;
+  }
+}
+
+/* 超大屏幕适配 */
+@media (min-width: 1200px) {
+  .yl-login__left {
+    width: 60%;
+  }
+  
+  .yl-login__right {
+    width: 40%;
+  }
+}
+
+/* 防止移动端输入框缩放 */
+@media (max-width: 480px) {
+  .yl-login__row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .yl-login__send {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  input, button, textarea {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
 }

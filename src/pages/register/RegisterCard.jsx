@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
-import "./register.css"; // 一定要确保这行存在
-const API_BASE = "http://localhost:8080";
+import "./register.css";
+
+const API_BASE = "";
 
 export default function RegisterCard() {
   const [form, setForm] = useState({
@@ -25,9 +26,9 @@ export default function RegisterCard() {
   const [message, setMessage] = useState("");
   const [verified, setVerified] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
   const [sending, setSending] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  
   useEffect(() => {
     if (!countdown) return;
     const t = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
@@ -35,6 +36,7 @@ export default function RegisterCard() {
   }, [countdown]);
 
   const handleChange = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  
   const handleExpChange = (i, k, v) => {
     const next = [...experiences];
     next[i][k] = v;
@@ -42,47 +44,37 @@ export default function RegisterCard() {
   };
 
   const sendVerification = async () => {
-    console.log(form);
-
     if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-      // setMessage( "Please enter a valid email." );
       alert("Please enter a valid email.");
       return;
     }
     try {
       const payload = { email: form.email.trim() };
-
-      console.log(payload);
-
+      setSending(true);
+      
       const res = await fetch(`${API_BASE}/api/auth/email/send-code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      console.log(res);
-      setMessage("Pleasing wait.");
-
+      
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
         setCountdown(data?.ttlSeconds || 60);
-        // setMessage({ type: "success", text: "Verification code sent. Please check your email" });
-        setMessage(
-          "Please enter a valid Verification code sent. Please check your email."
-        );
+        setMessage("Verification code sent. Please check your email.");
       } else {
         const err = await res.json().catch(() => ({}));
-        // setMessage({ type: "error", text: err?.message || "Failed to send verification code." });
-        setMessage("Failed to send verification code.");
+        setMessage(err?.message || "Failed to send verification code.");
       }
     } catch (e) {
-      // setMessage({ type: "error", text: "Network error. Please try again later." });
+      setMessage("Network error. Please try again later.");
     } finally {
-      // setSending(false);
+      setSending(false);
     }
   };
 
   const checkCode = async () => {
-    if (!form.verifyCode) return setMessage("Please input verfication code.");
+    if (!form.verifyCode) return setMessage("Please input verification code.");
     try {
       const res = await fetch(`${API_BASE}/api/auth/email/verify`, {
         method: "POST",
@@ -93,71 +85,63 @@ export default function RegisterCard() {
         }),
       });
 
-      console.log(res);
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
       if (res.ok) {
+        const data = await res.json();
         setVerified(true);
         handleChange("verificationToken", data.token ?? "");
-        setMessage("success ✔");
+        setMessage("Verification successful ✔");
       } else {
         setVerified(false);
         handleChange("verificationToken", "");
         setMessage("The verification code is incorrect or has expired");
       }
     } catch (e) {
-      console.log(e);
-      setMessage(`验证失败：${e}`);
+      setMessage(`Verification failed: ${e.message}`);
     }
   };
 
   const addExperience = () =>
     setExperiences((x) => [...x, { training: "", provider: "", date: "" }]);
 
-  // 顶部：直连后端 8080
-  const API_BASE = "http://localhost:8080";
-
-  // 点击 Register 时调用
   const onRegister = async (e) => {
     e.preventDefault();
 
-    // 1) 基本校验（可按需扩展）
     if (!/^\S+@\S+\.\S+$/.test(form.email || "")) {
       alert("Please enter a valid email.");
       return;
     }
-    form.code =  form.verifyCode;
-    if (!form.code) {
+    
+    if (!form.verifyCode) {
       alert("Please enter the verification code.");
       return;
     }
 
-    // 2) 组装 payload（与后端 DTO 完全一致）
+    if (!verified) {
+      alert("Please verify your email first.");
+      return;
+    }
+
     const payload = {
       firstName: (form.firstName || "").trim(),
       lastName: (form.lastName || "").trim(),
-      yearOfBirth: Number(form.yearOfBirth) || 0,
-      cardLevel: (form.cardLevel || "").trim(),
-      streetAddress: (form.streetAddress || "").trim(),
+      yearOfBirth: Number(form.yob) || 0,
+      cardLevel: (form.level || "").trim(),
+      streetAddress: (form.street || "").trim(),
       suburb: (form.suburb || "").trim(),
       state: (form.state || "").trim(),
       postcode: (form.postcode || "").trim(),
       email: (form.email || "").trim(),
-      verifyCode: (form.code || "").trim(), // ← 你输入的验证码
-      photoUrl: form.photoUrl || "",
-      experiences: (form.experiences || []).map((x) => ({
-        trainingName: (x.trainingName || "").trim(),
-        trainingProvider: (x.trainingProvider || "").trim(),
-        // 保证是 YYYY-MM-DD（如果你用 <input type="date" /> 直接就是这个格式）
-        dateOfTraining:
-          typeof x.dateOfTraining === "string"
-            ? x.dateOfTraining
-            : x.dateOfTraining?.toISOString?.().slice(0, 10),
+      verifyCode: (form.verifyCode || "").trim(),
+      photoUrl: "", // You'll need to handle file upload separately
+      experiences: experiences.map((x) => ({
+        trainingName: (x.training || "").trim(),
+        trainingProvider: (x.provider || "").trim(),
+        dateOfTraining: (x.date || "").trim(),
       })),
     };
 
     try {
-      // 3) 调注册接口
+      setSubmitting(true);
       const res = await fetch(`${API_BASE}/api/user/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -166,19 +150,17 @@ export default function RegisterCard() {
 
       if (!res.ok) {
         const text = await res.text();
-        alert(`Server error (${res.status}): ${text || "Unknown error"}`);
+        alert(`Registration failed (${res.status}): ${text || "Unknown error"}`);
         return;
       }
 
       const data = await res.json();
-
-      // 4) 按返回结构处理
       if (data.registered) {
         alert("Registration successful!");
         if (data.token) {
           localStorage.setItem("authToken", data.token);
         }
-        // 可选：跳转
+        // Redirect to home or other page
         // window.location.href = "/home";
       } else {
         alert(data.message || "Registration failed.");
@@ -186,20 +168,6 @@ export default function RegisterCard() {
     } catch (err) {
       console.error(err);
       alert("Network error. Please try again later.");
-    }
-  };
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.verificationToken)
-      return setMessage("Please complete email verification first");
-    setSubmitting(true);
-    try {
-      // TODO: /api/register 就绪后打开
-      // await fetch("/api/register", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ ... }) });
-      setMessage("已提交（demo），后端接口就绪后将真正保存。");
-    } catch (e) {
-      setMessage(`提交失败：${e}`);
     } finally {
       setSubmitting(false);
     }
@@ -223,6 +191,7 @@ export default function RegisterCard() {
             <input
               value={form.firstName}
               onChange={(e) => handleChange("firstName", e.target.value)}
+              required
             />
           </div>
 
@@ -233,28 +202,30 @@ export default function RegisterCard() {
             <input
               value={form.lastName}
               onChange={(e) => handleChange("lastName", e.target.value)}
+              required
             />
           </div>
 
-          {/* 新的：同一行内联，所有控件统一 38px 高度 */}
-          <div className="cr-row cr-inline">
-            <label className="cr-lb-short">
+          <div className="cr-row">
+            <label>
               Year of Birth<span>*</span>
             </label>
             <input
-              className="cr-inp-short"
               value={form.yob}
               onChange={(e) => handleChange("yob", e.target.value)}
               placeholder="yyyy"
+              required
             />
+          </div>
 
-            <label className="cr-lb-level">
+          <div className="cr-row">
+            <label>
               Card Level Being Applied<span>*</span>
             </label>
             <select
-              className="cr-sel-level"
               value={form.level}
               onChange={(e) => handleChange("level", e.target.value)}
+              required
             >
               <option>Level 1 - Culturally Aware</option>
               <option>Level 2 - Practitioner</option>
@@ -270,6 +241,7 @@ export default function RegisterCard() {
             <input
               value={form.street}
               onChange={(e) => handleChange("street", e.target.value)}
+              required
             />
           </div>
 
@@ -281,6 +253,7 @@ export default function RegisterCard() {
               <input
                 value={form.suburb}
                 onChange={(e) => handleChange("suburb", e.target.value)}
+                required
               />
             </div>
             <div className="cr-cell">
@@ -290,6 +263,7 @@ export default function RegisterCard() {
               <input
                 value={form.state}
                 onChange={(e) => handleChange("state", e.target.value)}
+                required
               />
             </div>
             <div className="cr-cell">
@@ -299,6 +273,7 @@ export default function RegisterCard() {
               <input
                 value={form.postcode}
                 onChange={(e) => handleChange("postcode", e.target.value)}
+                required
               />
             </div>
           </div>
@@ -309,8 +284,10 @@ export default function RegisterCard() {
                 Email<span>*</span>
               </label>
               <input
+                type="email"
                 value={form.email}
                 onChange={(e) => handleChange("email", e.target.value)}
+                required
               />
             </div>
             <div className="cr-cell cr-btn-cell">
@@ -337,6 +314,7 @@ export default function RegisterCard() {
             <input
               value={form.verifyCode}
               onChange={(e) => handleChange("verifyCode", e.target.value)}
+              required
             />
             <button
               type="button"
@@ -357,9 +335,10 @@ export default function RegisterCard() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleChange("photo", e.target.files?.[0])}
+                required
               />
               <div className="cr-upload-hint" aria-hidden>
-                📈
+                📷
               </div>
             </div>
           </div>
@@ -369,47 +348,63 @@ export default function RegisterCard() {
         <section className="cr-panel">
           <h2>Training Experience</h2>
 
-          <div className="cr-row">
-            <label>
-              Training Undertaken<span>*</span>
-            </label>
-            <input
-              value={experiences[0].training}
-              onChange={(e) => handleExpChange(0, "training", e.target.value)}
-            />
-          </div>
+          {experiences.map((exp, index) => (
+            <div key={index}>
+              <div className="cr-row">
+                <label>
+                  Training Undertaken{index === 0 && <span>*</span>}
+                </label>
+                <input
+                  value={exp.training}
+                  onChange={(e) => handleExpChange(index, "training", e.target.value)}
+                  required={index === 0}
+                />
+              </div>
+
+              <div className="cr-row">
+                <label>
+                  Training Provider{index === 0 && <span>*</span>}
+                </label>
+                <input
+                  value={exp.provider}
+                  onChange={(e) => handleExpChange(index, "provider", e.target.value)}
+                  required={index === 0}
+                />
+              </div>
+
+              <div className="cr-row">
+                <label>
+                  Dates of Training{index === 0 && <span>*</span>}
+                </label>
+                <input
+                  placeholder="mm/yyyy"
+                  value={exp.date}
+                  onChange={(e) => handleExpChange(index, "date", e.target.value)}
+                  required={index === 0}
+                />
+              </div>
+              
+              {index > 0 && (
+                <button 
+                  type="button" 
+                  className="cr-remove-btn"
+                  onClick={() => setExperiences(experiences.filter((_, i) => i !== index))}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
 
           <div className="cr-row">
-            <label>
-              Training Provider<span>*</span>
-            </label>
-            <input
-              value={experiences[0].provider}
-              onChange={(e) => handleExpChange(0, "provider", e.target.value)}
-            />
-          </div>
-
-          <div className="cr-row cr-two">
-            <div className="cr-cell">
-              <label>
-                Dates of Training<span>*</span>
-              </label>
-              <input
-                placeholder="mm/yyyy"
-                value={experiences[0].date}
-                onChange={(e) => handleExpChange(0, "date", e.target.value)}
-              />
-            </div>
-            <div className="cr-cell cr-link-cell">
-              <button type="button" className="cr-link" onClick={addExperience}>
-                Add More Experience+
-              </button>
-            </div>
+            <button type="button" className="cr-add-btn" onClick={addExperience}>
+              Add More Experience +
+            </button>
           </div>
 
           <div className="cr-submit-row">
             <button className="cr-submit" type="submit" disabled={submitting}>
-              {submitting ? "Submitting…" : "Submit"}
+              {submitting ? "Submitting…" : "Register"}
             </button>
           </div>
         </section>

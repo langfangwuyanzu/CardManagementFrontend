@@ -4,7 +4,10 @@ import leftImage from "./Login-left.png";
 import { useNavigate } from "react-router-dom";
 
 // 👇 这里直接写死你的本地后端地址
-const API_BASE = "http://localhost:8080";
+// const API_BASE = "http://localhost:8080";
+const API_BASE = ""; // ✅
+// ✅ 使用你的请求封装
+import api, { ApiError } from "../../utils/api";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,7 +16,6 @@ export default function LoginPage() {
   const [countdown, setCountdown] = useState(0);
   const [msg, setMsg] = useState(null);
   const navigate = useNavigate();
-
 
   useEffect(() => {
     if (!countdown) return;
@@ -76,11 +78,20 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.verified) {
+        console.log(data,111111111);
         setMsg({ type: "success", text: "success " });
         // 👉 可以把 token 保存到 localStorage / cookie
         localStorage.setItem("authToken", data.token);
+        const token = data.token;
+        const userData = await api.get("/users/me", { token });
+        
         // 跳转到 profile 页面
-        navigate("/profile");
+        if(userData.role == "USER"){
+          navigate("/profile");
+        }else if(userData.role == "ADMIN"){
+          navigate("/profileAdmin");
+        }
+        
       } else {
         console.log(e);
         setMsg({
@@ -106,26 +117,7 @@ export default function LoginPage() {
           <h1 className="yl-login__title">Welcome Back!</h1>
 
           {msg && (
-            <div
-              style={{
-                marginBottom: 12,
-                padding: "10px 12px",
-                borderRadius: 8,
-                fontSize: 14,
-                background:
-                  msg.type === "success"
-                    ? "#d1fae5"
-                    : msg.type === "error"
-                    ? "#fee2e2"
-                    : "#fef3c7",
-                color:
-                  msg.type === "success"
-                    ? "#065f46"
-                    : msg.type === "error"
-                    ? "#991b1b"
-                    : "#92400e",
-              }}
-            >
+            <div className={`yl-login__message yl-login__message--${msg.type}`}>
               {msg.text}
             </div>
           )}

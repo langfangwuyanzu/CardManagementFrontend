@@ -27,6 +27,7 @@
   border-right: 1px solid #e4e4e4;
   padding-top: 12px;
   width: 240px; /* 左侧固定宽度 */
+  color: #4690ec;
 }
 .mainCol {
   display: flex;
@@ -212,14 +213,15 @@
 .navItem--active .MuiListItemIcon-root .MuiSvgIcon-root,
 .MuiListItemButton-root.Mui-selected .MuiListItemIcon-root,
 .MuiListItemButton-root.Mui-selected .MuiListItemIcon-root .MuiSvgIcon-root {
-  color: #f59e0b !important;   /* 你的品牌黄 */
-  fill: #f59e0b !important;    /* 兜底部分图标用 fill */
+  
+  color: #ffffff !important;   /* 你的品牌黄 */
+  fill: #ffffff !important;    /* 兜底部分图标用 fill */
 }
 
 /* 选中文本颜色（保持和你之前一致） */
 .navItem--active .MuiListItemText-primary,
 .MuiListItemButton-root.Mui-selected .MuiListItemText-primary {
-  color: #92400e !important;
+  color: #4690ec !important;
   font-weight: 700;
 }
 
@@ -286,4 +288,58 @@
   .red-box-title {
     font-size: 16px;
   }
+}
+
+/* ===== Sidebar 样式 ===== */
+
+/* 整个左侧菜单栏 */
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: #003399; /* 深蓝背景 */
+  display: flex;
+  flex-direction: column;
+  padding-top: 12px;
+  box-sizing: border-box;
+}
+
+/* 菜单项（未选中） */
+.navItem {
+  margin: 4px 8px;
+  border-radius: 6px;
+  color: #072492;              /* 文字：亮蓝 */
+  font-weight: 500;
+}
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.08); /* 悬停：浅白蒙层 */
+  color: #ffffff;                        /* 悬停时文字变白 */
+}
+
+/* 图标默认颜色（未选中） */
+.navList .MuiListItemIcon-root,
+.navList .MuiListItemIcon-root .MuiSvgIcon-root {
+  color: #3399ff; /* 图标：亮蓝 */
+}
+
+/* 选中项 */
+.navItem--active,
+.MuiListItemButton-root.Mui-selected {
+  background: #1976d2 !important; /* 浅蓝背景 */
+  color: #ffffff !important;      /* 文字：白色 */
+  font-weight: 700;
+}
+
+/* 选中文字 */
+.navItem--active .MuiListItemText-primary,
+.MuiListItemButton-root.Mui-selected .MuiListItemText-primary {
+  color: #ffffff !important;  /* 白色文字 */
+  font-weight: 700;
+}
+
+/* 选中图标 */
+.navItem--active .MuiListItemIcon-root,
+.navItem--active .MuiListItemIcon-root .MuiSvgIcon-root,
+.MuiListItemButton-root.Mui-selected .MuiListItemIcon-root,
+.MuiListItemButton-root.Mui-selected .MuiListItemIcon-root .MuiSvgIcon-root {
+  color: #ffffff !important; /* 白色图标 */
 }

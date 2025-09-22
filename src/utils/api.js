@@ -8,7 +8,8 @@
 // const API_BASE =
 //   (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_BASE) ||
 //   "/api";
-const API_BASE = "http://localhost:8080";
+// const API_BASE = "http://localhost:8080";
+const API_BASE = "/api";
 
 // --- 超时控制 ---
 function withTimeout(promise, ms = 15000, msg = "Request timeout") {

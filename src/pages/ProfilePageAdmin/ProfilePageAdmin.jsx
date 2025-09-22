@@ -11,7 +11,7 @@ import {
   Menu as MenuIcon, AccountCircle, Autorenew, Upgrade,
   CreditCard, ContactMail, Chat
 } from "@mui/icons-material";
-import "./ProfilePage.css";
+import "./ProfilePageAdmin.css";
 import bannerImg from "../../assets/profile/banner.png";
 
 // ✅ 使用你的请求封装
@@ -74,7 +74,7 @@ function SideNav({ activeKey, onClick }) {
   );
 }
 
-export default function ProfilePage() {
+export default function ProfilePageAdmin() {
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
 
@@ -202,7 +202,7 @@ export default function ProfilePage() {
                 </Box>
               </Box>
             </Box>
-            <Banner />
+            {/* <Banner /> */}
 
             {loading && (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
