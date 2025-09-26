@@ -76,6 +76,7 @@ export default function UpgradeTab() {
                         <div className="form-group">
                             <label>Please select the level you want to upgrade</label>
                             <select value={level} onChange={(e) => setLevel(e.target.value)}>
+                                <option value="">-- Select Level --</option>
                                 <option value="1">Level 1 – Culturally Aware</option>
                                 <option value="2">Level 2 – Yolŋu Informed</option>
                                 <option value="3">Level 3 – Conversing in Yolŋu Matha</option>

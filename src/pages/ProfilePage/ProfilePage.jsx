@@ -219,7 +219,7 @@ export default function ProfilePage() {
               <Suspense fallback={<div style={{ padding: 16 }}>Loading tab…</div>}>
                 {activeKey === "profile" ? (
                   <ActiveComp profile={profile} onUpdated={setProfile} />
-                ) : activeKey === "card" ? (
+                ) : activeKey === "card" || activeKey === "renewal"? (
                   <ActiveComp profile={profile} />
                 ) : (
                   <ActiveComp />
