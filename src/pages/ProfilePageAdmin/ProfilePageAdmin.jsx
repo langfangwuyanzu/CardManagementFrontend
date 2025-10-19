@@ -18,12 +18,12 @@ import bannerImg from "../../assets/profile/banner.png";
 import api, { ApiError } from "../../utils/api";
 
 const NAV = [
-  { key: "profile", label: "Profile", icon: <AccountCircle /> },
-  { key: "renewal", label: "Renewal", icon: <Autorenew /> },
-  { key: "upgrade", label: "Upgrade", icon: <Upgrade /> },
-  { key: "card", label: "Digital Card", icon: <CreditCard /> },
-  { key: "contact", label: "Contact Us", icon: <ContactMail /> },
-  { key: "message", label: "Message", icon: <Chat /> },
+  { key: "profile", label: "Home", icon: <AccountCircle /> },
+  { key: "renewal", label: "Application", icon: <Autorenew /> },
+  { key: "upgrade", label: "Issue Card", icon: <Upgrade /> },
+  { key: "card", label: "Notification", icon: <CreditCard /> },
+  { key: "contact", label: "Message", icon: <ContactMail /> },
+  { key: "message", label: "Payment", icon: <Chat /> },
 ];
 
 // 懒加载各 Tab

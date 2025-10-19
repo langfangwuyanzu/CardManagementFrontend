@@ -1,232 +1,284 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  IconButton,
-  Typography,
-  Chip,
-  TextField,
-  InputAdornment,
-  AppBar,
-  Toolbar,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  useTheme,
-  useMediaQuery,
-  CircularProgress,
-  Alert
+  Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  TablePagination, IconButton, Typography, Chip, TextField, InputAdornment,
+  AppBar, Toolbar, Button, Dialog, DialogTitle, DialogContent, DialogContentText,
+  DialogActions, useTheme, useMediaQuery, CircularProgress, Alert, Grid, Avatar
 } from '@mui/material';
 import {
-  Delete as DeleteIcon,
-  Search as SearchIcon,
-  Add as AddIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  Edit as EditIcon
+  Delete as DeleteIcon, Search as SearchIcon, Add as AddIcon, ArrowDownward as ArrowDownwardIcon,
+  Edit as EditIcon, ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
+import api from "../../../utils/api";
 
-// API服务函数
-const api = {
-  get: async (url, params = {}) => {
-    try {
-      const response = await fetch(`http://localhost:8080${url}?${new URLSearchParams(params)}`, {
-        headers: {
-          'Authorization': `Bearer ${params.token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('API call failed:', error);
-      throw error;
-    }
-  }
-};
-
-// 表头配置
 const columns = [
   { id: 'id', label: 'ID', align: 'left', sortable: true },
   { id: 'firstName', label: 'FIRST NAME', align: 'left', sortable: true },
   { id: 'lastName', label: 'LAST NAME', align: 'left', sortable: true },
   { id: 'email', label: 'EMAIL', align: 'left', sortable: true },
   { id: 'cardLevel', label: 'LEVEL', align: 'left', sortable: true },
+  { id: 'status', label: 'STATUS', align: 'left', sortable: true },
   { id: 'role', label: 'ROLE', align: 'left', sortable: true },
   { id: 'actions', label: 'ACTIONS', align: 'center', sortable: false },
 ];
 
 export default function UserManagementSystem() {
+  // -------- 顶层 Hooks（不要放进条件分支里）--------
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [orderBy, setOrderBy] = useState('id');
   const [order, setOrder] = useState('asc');
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+
   const [users, setUsers] = useState([]);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // 删除弹窗
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // 拒绝弹窗（详情页操作）
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // 获取用户数据
-  const fetchUsers = async (pageNum, size) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  const authOpt = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+  // ---------- API: 获取用户列表（分页/搜索/排序） ----------
+  const getUserData = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      // 这里需要替换为实际的token获取方式
-      const token = localStorage.getItem('authToken');
-      const data = await api.get("/api/users/userList", { 
-        page: pageNum, 
-        size: size,
-        token 
-      });
-      
-      setUsers(data.content);
-      setTotalElements(data.totalElements);
-      setPage(data.number);
-      setRowsPerPage(data.size);
-    } catch (err) {
-      setError('Failed to fetch users: ' + err.message);
-      console.error('Error fetching users:', err);
+      const params = {
+        page,
+        size: rowsPerPage,
+        search: searchTerm?.trim() || undefined,
+        sort: `${orderBy},${order}`,
+      };
+      // 你的 api 工具：api.get(url, params, options)
+      const res = await api.get("/users/userList", params, authOpt);
+      setUsers(Array.isArray(res?.content) ? res.content : []);
+      setTotalElements(Number.isFinite(res?.totalElements) ? res.totalElements : 0);
+    } catch (e) {
+      console.error("userList error:", e);
+      setError("Failed to load users.");
+      setUsers([]);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers(page, rowsPerPage);
-  }, [page, rowsPerPage]);
+    getUserData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, rowsPerPage, orderBy, order, searchTerm]);
 
-  // 处理排序
   const handleSort = (columnId) => {
+    const col = columns.find(c => c.id === columnId);
+    if (!col?.sortable) return;
     const isAsc = orderBy === columnId && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(columnId);
+    setPage(0);
   };
 
-  // 处理删除对话框打开
   const handleDeleteClick = (user) => {
     setSelectedUser(user);
     setDeleteDialogOpen(true);
   };
 
-  // 处理删除确认
   const handleDeleteConfirm = async () => {
-    try {
-      // 在实际应用中，这里会调用API删除用户
-      console.log('Deleting user:', selectedUser);
-      // 删除成功后重新获取数据
-      await fetchUsers(page, rowsPerPage);
-    } catch (err) {
-      setError('Failed to delete user: ' + err.message);
-    } finally {
-      setDeleteDialogOpen(false);
-      setSelectedUser(null);
-    }
-  };
-
-  // 处理删除取消
-  const handleDeleteCancel = () => {
+    // TODO: 调用后端删除接口
+    setUsers(prev => prev.filter(u => u.id !== (selectedUser?.id)));
     setDeleteDialogOpen(false);
     setSelectedUser(null);
   };
 
-  // 处理页码变化
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
   };
 
-  // 处理每页行数变化
-  const handleChangeRowsPerPage = (event) => {
-    const newSize = parseInt(event.target.value, 10);
-    setRowsPerPage(newSize);
-    setPage(0);
-    fetchUsers(0, newSize);
+  const handleViewUser = (user) => setSelectedUser(user);
+  const handleBackToList = () => setSelectedUser(null);
+  const handleChangePage = (_e, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); };
+
+  const statusChip = (s) => {
+    if (s === 'APPROVED') return <Chip label="Approved" color="success" size="small" />;
+    if (s === 'PENDING')  return <Chip label="In progress" color="warning" size="small" />;
+    if (s === 'REJECTED') return <Chip label="Rejected" color="error" size="small" />;
+    return <Chip label={s || 'Unknown'} size="small" />;
   };
 
-  // 过滤数据
-  const filteredData = users.filter(user => 
-    user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.cardLevel && user.cardLevel.toString().includes(searchTerm))
-  );
-
-  // 排序数据
-  const sortedData = [...filteredData].sort((a, b) => {
-    if (order === 'asc') {
-      return a[orderBy] < b[orderBy] ? -1 : 1;
-    } else {
-      return a[orderBy] > b[orderBy] ? -1 : 1;
+  // ---------- 详情页操作：批准/拒绝 ----------
+  const refreshRow = async () => {
+    try {
+      if (!selectedUser) return;
+      const fresh = await api.get(`/users/${selectedUser.id}`, {}, authOpt);
+      setSelectedUser(fresh);
+    } catch {
+      // ignore; 列表刷新就行
+    } finally {
+      await getUserData();
     }
-  });
+  };
 
+  const onApprove = async () => {
+    if (!selectedUser) return;
+    try {
+      setSubmitting(true);
+      await api.post(`/admin/users/${selectedUser.id}/approve`, null, authOpt);
+      await refreshRow();
+    } catch (e) {
+      console.error(e);
+      alert("Approve failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onRejectClick = () => setRejectOpen(true);
+
+  const confirmReject = async () => {
+    if (!selectedUser) return;
+    try {
+      setSubmitting(true);
+      await api.post(
+        `/admin/users/${selectedUser.id}/reject`,
+        { reason: rejectReason },
+        authOpt
+      );
+      setRejectOpen(false);
+      setRejectReason('');
+      await refreshRow();
+    } catch (e) {
+      console.error(e);
+      alert("Reject failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ========== 详情模式 ==========
+  if (selectedUser) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Button startIcon={<ArrowBackIcon />} onClick={handleBackToList} sx={{ mb: 2 }}>
+          Back
+        </Button>
+
+        <Paper sx={{ p: 3, position: 'relative' }}>
+          {/* 顶部右侧操作按钮 */}
+          <Box sx={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 1 }}>
+            
+          </Box>
+
+          <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            Application Information
+            {statusChip(selectedUser.status)}
+          </Typography>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Typography>First Name: <b>{selectedUser.firstName || '—'}</b></Typography>
+                <Typography>Last Name: <b>{selectedUser.lastName || '—'}</b></Typography>
+                <Typography>Year of Birth: <b>{selectedUser.birthday || '—'}</b></Typography>
+              </Box>
+
+              <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Typography>Email: <b>{selectedUser.email || '—'}</b></Typography>
+                <Typography>Card Level: <b>{selectedUser.cardLevel || '—'}</b></Typography>
+                <Typography>Valid to: <b>{selectedUser.expireDate || '—'}</b></Typography>
+              </Box>
+
+              <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Typography>Street Address: <b>{selectedUser.streetAddress || '—'}</b></Typography>
+                <Typography>Suburb: <b>{selectedUser.suburb || '—'}</b></Typography>
+                <Typography>State: <b>{selectedUser.state || '—'}</b></Typography>
+                <Typography>Postcode: <b>{selectedUser.postcode || '—'}</b></Typography>
+              </Box>
+
+              {selectedUser.rejectionReason && selectedUser.status === 'REJECTED' && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                  Reject reason: {selectedUser.rejectionReason}
+                </Alert>
+              )}
+
+              <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>Training Experience</Typography>
+              {(!selectedUser.experiences || selectedUser.experiences.length === 0) ? (
+                <Typography color="text.secondary">No training experience.</Typography>
+              ) : (
+                <Box sx={{ display: 'grid', gap: 1 }}>
+                  {selectedUser.experiences.map((exp) => (
+                    <Typography key={exp.id}>
+                      • {exp.trainingName} — {exp.provider} — {exp.date}
+                    </Typography>
+                  ))}
+                </Box>
+              )}
+            </Grid>
+
+            <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Avatar sx={{ width: 120, height: 120, fontSize: 40 }}>
+                {selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}
+              </Avatar>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        {/* Reject 对话框（放在根组件里，避免条件 Hook） */}
+        <Dialog open={rejectOpen} onClose={() => setRejectOpen(false)} fullWidth maxWidth="sm">
+          <DialogTitle>Reject Application</DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ mb: 2 }}>
+              Please provide a reason for rejection. This will be shown to the user.
+            </DialogContentText>
+            <TextField
+              autoFocus
+              multiline
+              minRows={3}
+              fullWidth
+              placeholder="Enter rejection reason..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRejectOpen(false)}>Cancel</Button>
+            <Button onClick={confirmReject} color="error" disabled={submitting || !rejectReason.trim()}>
+              Confirm Reject
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    );
+  }
+
+  // ========== 列表模式 ==========
   return (
-    <Box sx={{ 
-      width: '100%', 
-      p: isMobile ? 1 : 3,
-      // 移动设备特定样式
-      '& .MuiTableCell': {
-        padding: isMobile ? '8px 4px' : '16px',
-        fontSize: isMobile ? '0.75rem' : '0.875rem'
-      },
-      '& .MuiChip-root': {
-        fontSize: isMobile ? '0.7rem' : '0.8125rem'
-      },
-      '& .MuiButton-root': {
-        fontSize: isMobile ? '0.75rem' : '0.875rem'
-      }
-    }}>
-      <AppBar 
-        position="static" 
-        elevation={0}
-        sx={{ 
-          backgroundColor: 'white', 
-          color: 'text.primary',
-          borderBottom: '1px solid',
-          borderBottomColor: 'divider',
-          mb: 2
-        }}
-      >
-        <Toolbar sx={{ 
-          flexDirection: isMobile ? 'column' : 'row',
-          alignItems: isMobile ? 'stretch' : 'center',
-          gap: isMobile ? 2 : 0
-        }}>
-          <Typography variant="h6" component="div" sx={{ 
-            flexGrow: isMobile ? 0 : 1,
-            textAlign: isMobile ? 'center' : 'left',
-            fontSize: isMobile ? '1.1rem' : '1.25rem'
-          }}>
+    <Box sx={{ width: '100%', p: isMobile ? 1 : 3 }}>
+      <AppBar position="static" elevation={0}
+              sx={{ backgroundColor: 'white', color: 'text.primary', borderBottom: '1px solid', borderBottomColor: 'divider', mb: 2 }}>
+        <Toolbar sx={{ flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? 2 : 0 }}>
+          <Typography variant="h6" sx={{ flexGrow: 1, textAlign: isMobile ? 'center' : 'left' }}>
             All Users | {totalElements}
           </Typography>
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: isMobile ? 'column' : 'row',
-            gap: isMobile ? 1 : 2,
-            width: isMobile ? '100%' : 'auto'
-          }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
               variant="outlined"
               size="small"
               placeholder="Search users..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -234,85 +286,40 @@ export default function UserManagementSystem() {
                   </InputAdornment>
                 ),
               }}
-              sx={{ 
-                width: isMobile ? '100%' : 250,
-                '& .MuiInputBase-input': {
-                  fontSize: isMobile ? '0.8rem' : '0.875rem'
-                }
-              }}
+              sx={{ width: 250 }}
             />
-            <Button 
-              variant="contained" 
-              startIcon={<AddIcon />}
-              sx={{ 
-                borderRadius: 2,
-                whiteSpace: 'nowrap',
-                minWidth: isMobile ? '100%' : 'auto'
-              }}
-            >
-              Add User
-            </Button>
+            <Button variant="contained" startIcon={<AddIcon />}>Add User</Button>
           </Box>
         </Toolbar>
       </AppBar>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <Paper elevation={2} sx={{ 
-        width: '100%', 
-        overflow: 'auto',
-        maxHeight: isMobile ? 'calc(100vh - 180px)' : 'calc(100vh - 200px)',
-        position: 'relative'
-      }}>
+      <Paper elevation={2} sx={{ width: '100%', overflow: 'auto', position: 'relative' }}>
         {loading && (
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            zIndex: 10
-          }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center',
+                     position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.7)', zIndex: 10 }}>
             <CircularProgress />
           </Box>
         )}
-        
         <TableContainer>
-          <Table stickyHeader aria-label="user table" size={isMobile ? "small" : "medium"}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
-                {columns.map((column) => (
+                {columns.map((col) => (
                   <TableCell
-                    key={column.id}
-                    align={column.align}
-                    sx={{
-                      backgroundColor: 'primary.main',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      cursor: column.sortable ? 'pointer' : 'default',
-                      fontSize: isMobile ? '0.7rem' : '0.875rem',
-                      py: isMobile ? 1 : 2
-                    }}
-                    onClick={() => column.sortable && handleSort(column.id)}
+                    key={col.id}
+                    align={col.align}
+                    onClick={() => col.sortable && handleSort(col.id)}
+                    sx={{ backgroundColor: 'primary.main', color: 'white', fontWeight: 'bold',
+                          cursor: col.sortable ? 'pointer' : 'default' }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {column.label}
-                      {column.sortable && (
-                        <ArrowDownwardIcon 
-                          sx={{ 
-                            fontSize: isMobile ? 14 : 16, 
-                            ml: 0.5,
-                            transform: orderBy === column.id && order === 'desc' ? 'rotate(180deg)' : 'rotate(0)',
-                            opacity: orderBy === column.id ? 1 : 0.3
-                          }} 
+                      {col.label}
+                      {col.sortable && (
+                        <ArrowDownwardIcon
+                          sx={{ fontSize: 16, ml: 0.5,
+                                transform: orderBy === col.id && order === 'desc' ? 'rotate(180deg)' : 'none' }}
                         />
                       )}
                     </Box>
@@ -321,64 +328,24 @@ export default function UserManagementSystem() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {sortedData.map((user) => (
-                <TableRow hover key={user.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                  <TableCell sx={{ 
-                    fontWeight: 'medium',
-                    maxWidth: isMobile ? 80 : 'none',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {user.id}
-                  </TableCell>
-                  <TableCell sx={{ 
-                    fontWeight: 'medium',
-                    maxWidth: isMobile ? 100 : 'none',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {user.firstName}
-                  </TableCell>
-                  <TableCell sx={{ 
-                    maxWidth: isMobile ? 100 : 'none',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {user.lastName}
-                  </TableCell>
-                  <TableCell sx={{ 
-                    maxWidth: isMobile ? 120 : 'none',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {user.email}
-                  </TableCell>
+              {users.map((user) => (
+                <TableRow hover key={user.id} onClick={() => handleViewUser(user)} sx={{ cursor: 'pointer' }}>
+                  <TableCell>{user.id}</TableCell>
+                  <TableCell>{user.firstName}</TableCell>
+                  <TableCell>{user.lastName}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.cardLevel}</TableCell>
+                  <TableCell>{statusChip(user.status)}</TableCell>
                   <TableCell>
-                    {user.cardLevel || 'N/A'}
+                    <Chip label={user.role} size="small"
+                          color={user.role === 'ADMIN' ? 'primary' : 'default'} variant="outlined" />
                   </TableCell>
-                  <TableCell>
-                    <Chip 
-                      label={user.role} 
-                      size="small" 
-                      color={user.role === 'ADMIN' ? 'primary' : 'default'}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton 
-                      aria-label="edit"
-                      size={isMobile ? "small" : "medium"}
-                      sx={{ color: 'primary.main', mr: 1 }}
-                    >
-                      <EditIcon fontSize={isMobile ? "small" : "medium"} />
+                  <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                    <IconButton sx={{ color: 'primary.main' }} onClick={() => handleViewUser(user)}>
+                      <EditIcon />
                     </IconButton>
-                    <IconButton 
-                      aria-label="delete"
-                      onClick={() => handleDeleteClick(user)}
-                      sx={{ color: 'error.main' }}
-                      size={isMobile ? "small" : "medium"}
-                    >
-                      <DeleteIcon fontSize={isMobile ? "small" : "medium"} />
+                    <IconButton sx={{ color: 'error.main' }} onClick={() => handleDeleteClick(user)}>
+                      <DeleteIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -386,19 +353,9 @@ export default function UserManagementSystem() {
             </TableBody>
           </Table>
         </TableContainer>
-        
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: isMobile ? 'column' : 'row',
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          p: 2,
-          gap: isMobile ? 2 : 0
-        }}>
-          <Typography variant="body2" sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
-            Showing {sortedData.length} of {totalElements} users
-          </Typography>
-          
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+          <Typography variant="body2">Showing {users.length} of {totalElements} users</Typography>
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
@@ -407,36 +364,21 @@ export default function UserManagementSystem() {
             page={page}
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
-            sx={{
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                fontSize: isMobile ? '0.75rem' : '0.875rem'
-              }
-            }}
           />
         </Box>
       </Paper>
 
-      {/* 删除确认对话框 */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-        fullScreen={isMobile}
-      >
-        <DialogTitle id="alert-dialog-title">
-          Confirm Delete
-        </DialogTitle>
+      {/* 删除确认弹窗 */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel} fullScreen={isMobile}>
+        <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete user <strong>{selectedUser?.firstName} {selectedUser?.lastName}</strong>? This action cannot be undone.
+          <DialogContentText>
+            Are you sure you want to delete <strong>{selectedUser?.firstName} {selectedUser?.lastName}</strong>?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
-            Delete
-          </Button>
+          <Button onClick={handleDeleteConfirm} color="error">Delete</Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -78,20 +78,37 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.verified) {
-        console.log(data,111111111);
+        console.log(data, 111111111);
         setMsg({ type: "success", text: "success " });
         // 👉 可以把 token 保存到 localStorage / cookie
         localStorage.setItem("authToken", data.token);
         const token = data.token;
         const userData = await api.get("/users/me", { token });
-        
-        // 跳转到 profile 页面
-        if(userData.role == "USER"){
+        console.log(userData, 22222222222222);
+        // 👉 审批状态判断逻辑
+        if (userData.status === "PENDING") {
+          setMsg({
+            type: "info",
+            text: "Your account is under review. Please wait for approval."
+          });
+          return;
+        }
+
+        if (userData.status === "REJECTED") {
+          setMsg({
+            type: "error",
+            text: "Your account has been rejected. Please contact the administrator."
+          });
+          return;
+        }
+
+        // 👉 如果通过审批再跳转
+        if (userData.role === "USER") {
           navigate("/profile");
-        }else if(userData.role == "ADMIN"){
+        } else if (userData.role === "ADMIN") {
           navigate("/profileAdmin");
         }
-        
+
       } else {
         console.log(e);
         setMsg({
@@ -144,8 +161,8 @@ export default function LoginPage() {
                 {countdown > 0
                   ? `${countdown}s`
                   : sending
-                  ? "sending..."
-                  : "Send Code"}
+                    ? "sending..."
+                    : "Send Code"}
               </button>
             </div>
 
