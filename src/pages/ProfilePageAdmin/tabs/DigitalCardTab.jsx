@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TablePagination, IconButton, Typography, Chip, TextField, InputAdornment,
+  TablePagination, Typography, Chip, TextField, InputAdornment,
   AppBar, Toolbar, Button, useTheme, useMediaQuery, CircularProgress, Alert
 } from '@mui/material';
 import {
@@ -11,25 +11,10 @@ import {
 } from '@mui/icons-material';
 import { Download as DownloadIcon } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
+import { useNavigate } from 'react-router-dom';
 
-// ===== API 服务（和你的一致风格）=====
-const api = {
-  get: async (url, params = {}) => {
-    const token = localStorage.getItem('authToken');
-    const qs = new URLSearchParams(
-      Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '')
-    ).toString();
-
-    const resp = await fetch(`http://localhost:8080${url}?${qs}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      }
-    });
-    if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
-    return await resp.json();
-  }
-};
+// ✅ 用项目里的通用 API 工具
+import api from '../../../utils/api';
 
 // ===== 表头配置（与你一致的结构）=====
 const columns = [
@@ -41,32 +26,6 @@ const columns = [
   { id: 'email', label: 'Email', align: 'left', sortable: true },
   { id: 'status', label: 'STATES', align: 'left', sortable: true },
 ];
-// 拉取所有页的数据（按当前服务器筛选/排序）
-const fetchAllNotifications = async () => {
-  const sort = `${orderBy},${order}`;
-  const pageSize = 200; // 一次取 200 条，避免请求过大
-  let pageIndex = 0;
-  let all = [];
-  // 按 type 筛选（你前面把 status 输入框删掉了，这里就只保留 type）
-  const params = (p) => ({
-    page: p,
-    size: pageSize,
-    type: filterType || undefined,
-    sort
-  });
-
-  while (true) {
-    const data = await api.get('/api/notifications', params(pageIndex));
-    const content = data?.content || [];
-    all = all.concat(content);
-    // 结束条件：到了最后一页
-    if (data.last === true || content.length === 0) break;
-    pageIndex += 1;
-  }
-  return all;
-};
-
-
 
 // 状态 → 芯片样式
 const statusToChip = (status) => {
@@ -86,6 +45,7 @@ const formatTime = (iso) => {
 };
 
 export default function NotificationCenter() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [orderBy, setOrderBy] = useState('createdAt');
@@ -103,39 +63,12 @@ export default function NotificationCenter() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  // 拉取所有页的数据（按当前服务器筛选/排序）
-  const fetchAllNotifications = async () => {
-    const sort = `${orderBy},${order}`;
-    const pageSize = 200; // 一次取 200 条，避免请求过大
-    let pageIndex = 0;
-    let all = [];
-    // 按 type 筛选（你前面把 status 输入框删掉了，这里就只保留 type）
-    const params = (p) => ({
-      page: p,
-      size: pageSize,
-      type: filterType || undefined,
-      sort
-    });
 
-    while (true) {
-      const data = await api.get('/api/notifications', params(pageIndex));
-      const content = data?.content || [];
-      all = all.concat(content);
-      // 结束条件：到了最后一页
-      if (data.last === true || content.length === 0) break;
-      pageIndex += 1;
-    }
-    return all;
-  };
-
-  // 生成 Excel 并下载
+  // 生成 Excel 并下载（会用到组件内部的 fetchAllNotifications）
   const exportExcel = async () => {
     try {
       setLoading(true);
-      // 拉全量（按当前 type 过滤 & 当前排序）
-      const allRows = await fetchAllNotifications();
-
-      // 映射为扁平对象（只导出需要的列）
+      const allRows = await fetchAllNotifications(); // 👈 用下面定义的内部函数
       const rowsForExcel = allRows.map(r => ({
         ID: r.id,
         Name: r.name || '',
@@ -150,13 +83,12 @@ export default function NotificationCenter() {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Notifications');
 
-      // 自动按内容调列宽（简单估算）
       const colWidths = Object.keys(rowsForExcel[0] || { A: '' }).map((key) => {
         const maxLen = Math.max(
           key.length,
           ...rowsForExcel.map(row => String(row[key] ?? '').length)
         );
-        return { wch: Math.min(Math.max(maxLen + 2, 8), 40) }; // 8~40之间
+        return { wch: Math.min(Math.max(maxLen + 2, 8), 40) };
       });
       ws['!cols'] = colWidths;
 
@@ -170,7 +102,6 @@ export default function NotificationCenter() {
     }
   };
 
-
   // 拉数据（严格服务器分页/排序/筛选）
   const fetchNotifications = async (pageNum, size) => {
     try {
@@ -178,7 +109,7 @@ export default function NotificationCenter() {
       setError(null);
 
       const sort = `${orderBy},${order}`;
-      const data = await api.get('/api/notifications', {
+      const data = await api.get('/notifications', {
         page: pageNum,
         size,
         type: filterType || undefined,
@@ -198,6 +129,28 @@ export default function NotificationCenter() {
     }
   };
 
+  // 拉取所有页的数据（按当前服务器筛选/排序）——给导出使用
+  const fetchAllNotifications = async () => {
+    const sort = `${orderBy},${order}`;
+    const pageSize = 200;
+    let pageIndex = 0;
+    let all = [];
+
+    while (true) {
+      const data = await api.get('/notifications', {
+        page: pageIndex,
+        size: pageSize,
+        type: filterType || undefined,
+        sort
+      });
+      const content = data?.content || [];
+      all = all.concat(content);
+      if (data.last === true || content.length === 0) break;
+      pageIndex += 1;
+    }
+    return all;
+  };
+
   useEffect(() => {
     fetchNotifications(page, rowsPerPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -212,7 +165,7 @@ export default function NotificationCenter() {
   };
 
   // 页码/每页
-  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangePage = (_event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (event) => {
     const newSize = parseInt(event.target.value, 10);
     setRowsPerPage(newSize);
@@ -248,17 +201,7 @@ export default function NotificationCenter() {
               InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon /></InputAdornment>) }}
               sx={{ width: isMobile ? '100%' : 250 }}
             />
-            {/* 服务器筛选：type / status（可换成 Select） */}
-            {/* <TextField
-              variant="outlined" size="small" placeholder="Type (Expire/Application/Training...)"
-              value={filterType} onChange={(e) => { setFilterType(e.target.value); setPage(0); }}
-              sx={{ width: isMobile ? '100%' : 220 }}
-            />
-            <TextField
-              variant="outlined" size="small" placeholder="Status (SUCCESS/FAIL/PENDING/READ)"
-              value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}
-              sx={{ width: isMobile ? '100%' : 220 }}
-            /> */}
+
             <Button
               variant="outlined"
               startIcon={<DownloadIcon />}
@@ -268,7 +211,12 @@ export default function NotificationCenter() {
               Export Excel
             </Button>
 
-            <Button variant="contained" startIcon={<AddIcon />} sx={{ borderRadius: 2, whiteSpace: 'nowrap' }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              sx={{ borderRadius: 2, whiteSpace: 'nowrap' }}
+              onClick={() => navigate('/notifications/new')}
+            >
               Create Notification
             </Button>
           </Box>

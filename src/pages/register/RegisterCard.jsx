@@ -103,75 +103,130 @@ export default function RegisterCard() {
   const addExperience = () =>
     setExperiences((x) => [...x, { training: "", provider: "", date: "" }]);
 
-  const onRegister = async (e) => {
-    e.preventDefault();
+ const onRegister = async (e) => {
+  e.preventDefault();
 
-    if (!/^\S+@\S+\.\S+$/.test(form.email || "")) {
-      alert("Please enter a valid email.");
-      return;
-    }
-    
-    if (!form.verifyCode) {
-      alert("Please enter the verification code.");
-      return;
-    }
+  // 基本校验
+  const email = (form.email || "").trim();
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    alert("Please enter a valid email.");
+    return;
+  }
+  if (!form.verifyCode) {
+    alert("Please enter the verification code.");
+    return;
+  }
+  // if (!verified) {
+  //   alert("Please verify your email first.");
+  //   return;
+  // }
 
-    if (!verified) {
-      alert("Please verify your email first.");
-      return;
-    }
-
-    const payload = {
-      firstName: (form.firstName || "").trim(),
-      lastName: (form.lastName || "").trim(),
-      yearOfBirth: Number(form.yob) || 0,
-      cardLevel: (form.level || "").trim(),
-      streetAddress: (form.street || "").trim(),
-      suburb: (form.suburb || "").trim(),
-      state: (form.state || "").trim(),
-      postcode: (form.postcode || "").trim(),
-      email: (form.email || "").trim(),
-      verifyCode: (form.verifyCode || "").trim(),
-      photoUrl: "", // You'll need to handle file upload separately
-      experiences: experiences.map((x) => ({
-        trainingName: (x.training || "").trim(),
-        trainingProvider: (x.provider || "").trim(),
-        dateOfTraining: (x.date || "").trim(),
-      })),
-    };
-
-    try {
-      setSubmitting(true);
-      const res = await fetch(`${API_BASE}/api/user/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        alert(`Registration failed (${res.status}): ${text || "Unknown error"}`);
-        return;
-      }
-
-      const data = await res.json();
-      if (data.registered) {
-        alert("Registration successful!");
-        if (data.token) {
-          localStorage.setItem("authToken", data.token);
-        }
-        // Redirect to home or other page
-        // window.location.href = "/home";
-      } else {
-        alert(data.message || "Registration failed.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Network error. Please try again later.");
-    } finally {
-      setSubmitting(false);
-    }
+  // 工具函数
+  const trimOrNull = (v) => {
+    const s = (v ?? "").toString().trim();
+    return s === "" ? null : s;
   };
+  const toYearOrNull = (v) => {
+    const s = (v ?? "").toString().trim();
+    if (s === "") return null;
+    const n = Number(s);
+    if (!Number.isInteger(n)) return null;
+    // 可选：做个合理区间约束
+    const thisYear = new Date().getFullYear();
+    if (n < 1900 || n > thisYear) return null;
+    return n;
+  };
+  const isoDateOrNull = (v) => {
+    const s = (v ?? "").toString().trim();
+    if (!s) return null;
+    // 只接受 YYYY-MM-DD，避免 "" 或非 ISO 导致后端 LocalDate 反序列化报错
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+  };
+
+  // 组装 payload：为空就 null；后面会统一删除 null/空串键
+  const payload = {
+    firstName: trimOrNull(form.firstName),
+    lastName: trimOrNull(form.lastName),
+    yearOfBirth: toYearOrNull(form.yob),                     // ✅ 不再用 0
+    cardLevel: trimOrNull(form.level)?.toUpperCase() ?? null, // ✅ 若后端是枚举更稳
+    streetAddress: trimOrNull(form.street),
+    suburb: trimOrNull(form.suburb),
+    state: trimOrNull(form.state),
+    postcode: trimOrNull(form.postcode),
+    email,
+    verifyCode: trimOrNull(form.verifyCode),
+    photoUrl: null, // 文件上传请走单独接口；这里先不传
+  };
+
+  // experiences：只保留有内容的项；日期只发 ISO；全空的项过滤掉
+  const exp = (experiences || [])
+    .map((x) => {
+      const trainingName = trimOrNull(x.training);
+      const trainingProvider = trimOrNull(x.provider);
+      const dateOfTraining = isoDateOrNull(x.date);
+      if (!trainingName && !trainingProvider && !dateOfTraining) return null;
+      const item = {};
+      if (trainingName) item.trainingName = trainingName;
+      if (trainingProvider) item.trainingProvider = trainingProvider;
+      if (dateOfTraining) item.dateOfTraining = dateOfTraining;
+      return item;
+    })
+    .filter(Boolean);
+  if (exp.length) payload.experiences = exp;
+
+  // 删除值为 null 或空串的键，避免触发后端 @NotBlank/@NotNull 或 LocalDate 解析异常
+  Object.keys(payload).forEach((k) => {
+    if (payload[k] === null || payload[k] === "") delete payload[k];
+  });
+
+  const url = typeof API_BASE === "string" && API_BASE
+    ? `${API_BASE}/api/user/register`
+    : "/api/user/register"; // ✅ 兼容走 Vite 代理
+
+  try {
+    setSubmitting(true);
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    // 优先按 JSON 解析，失败再退回文本
+    let bodyText = "";
+    let data = null;
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      data = await res.json().catch(() => null);
+    } else {
+      bodyText = await res.text().catch(() => "");
+    }
+
+    if (!res.ok) {
+      // 尽量把后端错误细节展示出来
+      const msg = data ? JSON.stringify(data) : (bodyText || "Unknown error");
+      alert(`Registration failed (${res.status}): ${msg}`);
+      return;
+    }
+
+    // 后端你的实现：验证码错/邮箱重复会返回 200 + { registered:false, message:... }
+    const ok = data && data.registered;
+    if (ok) {
+      alert("Registration successful!");
+      if (data.token) localStorage.setItem("authToken", data.token);
+      // TODO: 跳转
+      // window.location.href = "/home";
+    } else {
+      alert((data && data.message) || "Registration failed.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Network error. Please try again later.");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   return (
     <div className="cr-wrap">
@@ -316,13 +371,13 @@ export default function RegisterCard() {
               onChange={(e) => handleChange("verifyCode", e.target.value)}
               required
             />
-            <button
+            {/* <button
               type="button"
               className="cr-btn cr-ghost cr-small"
               onClick={checkCode}
             >
               Check
-            </button>
+            </button> */}
             {verified && <span className="cr-ok">✔</span>}
           </div>
 
