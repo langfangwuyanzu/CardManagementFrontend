@@ -23,7 +23,7 @@ const NAV = [
   { key: "upgrade", label: "Issue Card", icon: <Upgrade /> },
   { key: "card", label: "Notification", icon: <CreditCard /> },
   { key: "contact", label: "Message", icon: <ContactMail /> },
-  { key: "message", label: "Payment", icon: <Chat /> },
+  // { key: "message", label: "Payment", icon: <Chat /> },
 ];
 
 // 懒加载各 Tab
@@ -33,7 +33,7 @@ const TabsMap = {
   upgrade: lazy(() => import("./tabs/UpgradeTab")),
   card: lazy(() => import("./tabs/DigitalCardTab")),
   contact: lazy(() => import("./tabs/ContactTab")),
-  message: lazy(() => import("./tabs/MessageTab")),
+  // message: lazy(() => import("./tabs/MessageTab")),
 };
 
 const levelName = (lvl) => {

@@ -13,7 +13,7 @@ export default function UserChat({ token, userId }) {
   const loadThreads = async (p = page) => {
     try {
       const res = await api.get(
-        `/api/messages/users/${userId}/unsent?page=${p}&size=${size}`,
+        `/messages/users/${userId}/unsent?page=${p}&size=${size}`,
         { token }
       );
       setThreads(res);

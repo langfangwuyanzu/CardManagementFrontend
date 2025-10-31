@@ -16,7 +16,7 @@ function ChatView({ token, threadId, currentUserId, authorRole = "ADMIN", onBack
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get(`/api/messages/threads/${threadId}`, { token });
+      const res = await api.get(`/messages/threads/${threadId}`, { token });
       // 后端可能返回数组或 {content:[]}；这里统一成数组
       const list = Array.isArray(res) ? res : res?.content ?? [];
       setMessages(list);
@@ -39,7 +39,7 @@ function ChatView({ token, threadId, currentUserId, authorRole = "ADMIN", onBack
     setError(null);
     try {
       await api.post(
-        `/api/messages/${threadId}/replies`,
+        `/messages/${threadId}/replies`,
         {
           parentId: last.id,
           authorUserId: currentUserId,
@@ -124,8 +124,8 @@ export default function AdminView({ token, adminUserId = 1 }) {
     try {
       const url =
         t === "todo"
-          ? `/api/messages/admin/todo?page=${p}&size=${size}`
-          : `/api/messages/admin/history?page=${p}&size=${size}`;
+          ? `/messages/admin/todo?page=${p}&size=${size}`
+          : `/messages/admin/history?page=${p}&size=${size}`;
       const res = await api.get(url, { token });
 
       // 兼容两种返回：分页对象 {content,totalPages...} 或 直接数组
