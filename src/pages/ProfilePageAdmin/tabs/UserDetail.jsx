@@ -22,7 +22,7 @@ export default function UserDetail() {
   // ✅ 获取当前登录用户信息
   const fetchUserInfo = async () => {
     try {
-      const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem("authTokenAdmin");
       if (!token) throw new Error("No token found");
 
       const res = await fetch("/api/users/me", {

@@ -44,7 +44,7 @@
   font-size: 28px;
   line-height: 1.2;
   font-weight: 700;
-  color: #f59e0b;
+  color: #4690ec;
   text-align: center;
 }
 
@@ -98,7 +98,7 @@
 }
 
 .yl-login__input:focus {
-  border-color: #f59e0b;
+  border-color: #4690ec;
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
 
@@ -150,7 +150,7 @@
   font-weight: 600;
   color: #fff;
   cursor: pointer;
-  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  background: linear-gradient(90deg, #4690ec, #7BB8F5);
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
   transition: transform 0.05s ease, filter 0.2s ease;
   margin-top: 8px;
@@ -201,7 +201,7 @@
   }
   
   .yl-login__title {
-    font-size: 40px;
+    font-size: 25px;
     text-align: left;
   }
 }

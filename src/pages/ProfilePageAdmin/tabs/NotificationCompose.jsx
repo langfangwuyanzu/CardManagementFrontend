@@ -9,7 +9,7 @@ import ReactQuill from 'react-quill';
 
 const api = {
   post: async (url, body) => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authTokenAdmin');
     const resp = await fetch(`http://localhost:8080${url}`, {
       method: 'POST',
       headers: {

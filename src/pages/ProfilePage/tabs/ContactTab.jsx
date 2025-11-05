@@ -11,15 +11,12 @@ export default function ContactTab({ email = "admin@workingcard.com.au" }) {
   const [chatting, setChatting] = useState(false);
 
   if (chatting) {
-    
+
     return <ChatView onBack={() => setChatting(false)} />;
   }
 
   return (
     <Box>
-      <Typography className="h6" sx={{ mb: 2 }}>
-        Contact Us
-      </Typography>
 
       <Grid container spacing={3}>
         {/* Email 卡片 */}
@@ -27,16 +24,18 @@ export default function ContactTab({ email = "admin@workingcard.com.au" }) {
           <Paper variant="outlined" className="card" sx={{ p: 3, height: 150, display: "flex", alignItems: "center" }}>
             <ButtonBase
               onClick={() =>
-  window.open(
-    `https://mail.google.com/mail/?view=cm&fs=1&to=${email}`,
-    "_blank"
-  )
-}
+                window.open(
+                  `https://mail.google.com/mail/?view=cm&fs=1&to=${email}`,
+                  "_blank"
+                )
+              }
               sx={{ width: "100%", textAlign: "left", borderRadius: 2 }}
             >
               <Stack direction="row" alignItems="center" spacing={2} sx={{ width: "100%" }}>
-                <Box sx={{ width: 64, height: 64, borderRadius: "50%", bgcolor: "grey.100",
-                           display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Box sx={{
+                  width: 64, height: 64, borderRadius: "50%", bgcolor: "grey.100",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                }}>
                   <MailOutlineIcon fontSize="large" />
                 </Box>
                 <Box sx={{ flex: 1 }}>
@@ -53,8 +52,10 @@ export default function ContactTab({ email = "admin@workingcard.com.au" }) {
         <Grid item xs={12} md={6}>
           <Paper variant="outlined" className="card" sx={{ p: 3, height: 150, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Stack direction="row" alignItems="center" spacing={2}>
-              <Box sx={{ width: 64, height: 64, borderRadius: "50%", bgcolor: "grey.100",
-                         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Box sx={{
+                width: 64, height: 64, borderRadius: "50%", bgcolor: "grey.100",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+              }}>
                 <ChatBubbleOutlineIcon fontSize="large" />
               </Box>
               <Box>

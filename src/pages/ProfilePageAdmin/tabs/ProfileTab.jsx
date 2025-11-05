@@ -48,7 +48,7 @@ export default function UserManagementSystem() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('authTokenAdmin') : null;
   const authOpt = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
   // ---------- API: 获取用户列表（分页/搜索/排序） ----------

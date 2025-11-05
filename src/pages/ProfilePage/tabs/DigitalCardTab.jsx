@@ -44,7 +44,7 @@ export default function DigitalCardTab({ profile: profileProp }) {
   // 拉取用户（改成你的后端地址即可）
   useEffect(() => {
     if (profileProp) return;
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authTokenAdmin");
     if (!token) return;
     (async () => {
       try {

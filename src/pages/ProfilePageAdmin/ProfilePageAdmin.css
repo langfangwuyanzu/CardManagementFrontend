@@ -343,3 +343,22 @@
 .MuiListItemButton-root.Mui-selected .MuiListItemIcon-root .MuiSvgIcon-root {
   color: #ffffff !important; /* 白色图标 */
 }
+
+.logoContainer {
+  display: flex;
+  justify-content: center;
+  padding: 16px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 8px;
+}
+
+.navLogo {
+  /* width: 40px;
+  height: 40px; */
+  cursor: pointer; /* 如果有点击功能 */
+  transition: opacity 0.2s;
+}
+
+.navLogo:hover {
+  opacity: 0.8; /* 如果有点击功能 */
+}

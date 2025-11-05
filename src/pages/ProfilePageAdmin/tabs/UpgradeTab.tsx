@@ -55,7 +55,7 @@ export default function UserManagementSystem() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("authTokenAdmin");
   const authOpt = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
   // 拉列表

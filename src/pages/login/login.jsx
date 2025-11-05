@@ -81,7 +81,7 @@ export default function LoginPage() {
         console.log(data, 111111111);
         setMsg({ type: "success", text: "success " });
         // 👉 可以把 token 保存到 localStorage / cookie
-        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("authTokenAdmin", data.token);
         const token = data.token;
         const userData = await api.get("/users/me", { token });
         console.log(userData, 22222222222222);
@@ -104,7 +104,11 @@ export default function LoginPage() {
 
         // 👉 如果通过审批再跳转
         if (userData.role === "USER") {
-          navigate("/profile");
+          // navigate("/profile");
+          setMsg({
+            type: "error",
+            text: "This is not a admin role, please use admin role account!"
+          });
         } else if (userData.role === "ADMIN") {
           navigate("/profileAdmin");
         }
@@ -125,14 +129,11 @@ export default function LoginPage() {
 
   return (
     <div className="yl-login">
-      <div
-        className="yl-login__left"
-        style={{ backgroundImage: `url(${leftImage})` }}
-      />
+      
       <div className="yl-login__right">
         <div className="yl-login__card">
-          <h1 className="yl-login__title">Welcome Back!</h1>
-
+          <h1 className="yl-login__title">Yolŋu Card</h1>
+          <h1 className="yl-login__title">Management System</h1>
           {msg && (
             <div className={`yl-login__message yl-login__message--${msg.type}`}>
               {msg.text}
@@ -182,6 +183,10 @@ export default function LoginPage() {
           </form>
         </div>
       </div>
+      <div
+        className="yl-login__left"
+        style={{ backgroundImage: `url(${leftImage})` }}
+      />
     </div>
   );
 }

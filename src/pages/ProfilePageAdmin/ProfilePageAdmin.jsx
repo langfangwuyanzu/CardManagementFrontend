@@ -47,6 +47,13 @@ const levelName = (lvl) => {
 function SideNav({ activeKey, onClick }) {
   return (
     <List className="navList">
+      <div className="logoContainer">
+        <img
+          src="/src/assets/profile/Logo-white.png"
+          alt="Logo"
+          className="navLogo" // 可选：点击LOGO返回首页
+        />
+      </div>
       {NAV.map((i) => {
         const selected = i.key === activeKey;
         return (
@@ -97,7 +104,7 @@ export default function ProfilePageAdmin() {
 
   useEffect(() => {
 
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authTokenAdmin");
     if (!token) {
       setError("没有登录信息，请先登录");
       setLoading(false);

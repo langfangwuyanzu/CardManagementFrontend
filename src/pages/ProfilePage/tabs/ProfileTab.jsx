@@ -84,7 +84,7 @@ export default function ProfileTab({ profile, onUpdated }) {
       return;
     }
 
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authTokenAdmin");
     if (!token) {
       setMsg({ type: "error", text: "please login firstly" });
       return;

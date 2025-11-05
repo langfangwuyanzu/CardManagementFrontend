@@ -28,7 +28,7 @@ export default function RenewalTab() {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("authTokenAdmin");
         api.get("/users/me", { token }).then(setProfile).catch(console.error);
     }, []);
 
@@ -126,7 +126,7 @@ export default function RenewalTab() {
                     }}
                     onClick={async () => {
                         try {
-                            const token = localStorage.getItem("authToken");
+                            const token = localStorage.getItem("authTokenAdmin");
                             const userId = localStorage.getItem("userId");
                             await api.post(`/renewal/${userId}`, {}, { token });
                             setSuccess(true); // 成功后切换页面

@@ -12,7 +12,7 @@ export default function UpgradeTab() {
 
     // 拉取用户信息
     useEffect(() => {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("authTokenAdmin");
         if (!token) return;
         (async () => {
             try {

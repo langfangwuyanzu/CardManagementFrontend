@@ -213,7 +213,7 @@ export default function RegisterCard() {
     const ok = data && data.registered;
     if (ok) {
       alert("Registration successful!");
-      if (data.token) localStorage.setItem("authToken", data.token);
+      if (data.token) localStorage.setItem("authTokenAdmin", data.token);
       // TODO: 跳转
       // window.location.href = "/home";
     } else {

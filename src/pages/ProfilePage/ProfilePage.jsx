@@ -97,7 +97,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
 
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authTokenAdmin");
     if (!token) {
       setError("没有登录信息，请先登录");
       setLoading(false);
